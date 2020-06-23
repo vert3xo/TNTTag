@@ -1,12 +1,30 @@
-name: "Sample"
-description: "Template plugin"
+name: "TNTTag"
+description: "TNT Tag minigame"
 author: "Vert3xo"
 version: "0.1"
 
-main: "me.vert3xo.sample.Main"
+main: "me.vert3xo.tnttag.Main"
 commands:
   start:
     usage: "Usage: /start"
+    permission: "tnttag.admin"
+    description: "Force start the game."
+  setlobby:
+    usage: "Usage: /setlobby"
+    permission: "tnttag.admin"
+    description: "Set lobby spawn location."
+  setarena:
+    usage: "Usage: /setarena"
+    permission: "tnttag.admin"
+    description: "Set arena spawn location."
+  lobbytp:
+    usage: "Usage: /lobbytp"
+    permission: "tnttag.admin"
+    description: "Teleport to the game lobby."
+  arenatp:
+    usage: "Usage: /arenatp"
+    permission: "tnttag.admin"
+    description: "Teleport to the game arena."
 
 permissions:
   tnttag.admin:
