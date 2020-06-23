@@ -1,0 +1,14 @@
+name: "Sample"
+description: "Template plugin"
+author: "Vert3xo"
+version: "0.1"
+
+main: "me.vert3xo.sample.Main"
+commands:
+  start:
+    usage: "Usage: /start"
+
+permissions:
+  tnttag.admin:
+    default: "true"
+    description: "TNT Tag Admin Commands"
