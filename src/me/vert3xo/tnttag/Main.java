@@ -3,6 +3,7 @@ package me.vert3xo.tnttag;
 import me.vert3xo.tnttag.commands.*;
 import me.vert3xo.tnttag.configuration.ConfigurationManager;
 import me.vert3xo.tnttag.events.GameMechanics;
+import me.vert3xo.tnttag.game.GameManager;
 import me.vert3xo.tnttag.playerdata.PlayerManager;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -12,12 +13,15 @@ import java.util.UUID;
 
 public class Main extends JavaPlugin {
     public HashMap<UUID, PlayerManager> playerManager = new HashMap<>();
+    public GameMechanics gameMechanics;
+    public GameManager gameManager;
 
     @Override
     public void onEnable() {
         this.loadConfigManager();
         this.registerEvents();
         this.registerCommands();
+        instantiateClasses();
         this.getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "TNT Tag enabled.");
     }
 
@@ -42,5 +46,11 @@ public class Main extends JavaPlugin {
 
     private void loadConfigManager() {
         new ConfigurationManager();
+    }
+
+    private void instantiateClasses() {
+        gameMechanics = new GameMechanics();
+        gameManager = new GameManager();
+        gameManager.setupGame();
     }
 }

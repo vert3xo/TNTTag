@@ -17,5 +17,10 @@ public class GameMechanics implements Listener {
         Player p = e.getPlayer();
         UUID uuid = p.getUniqueId();
         this.plugin.playerManager.put(uuid, new PlayerManager(uuid, false, 0, false));
+        this.plugin.gameManager.lobbyWait(p);
+    }
+
+    public void tntCheck(Player player) {
+
     }
 }
