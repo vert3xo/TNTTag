@@ -1,6 +1,7 @@
 package me.vert3xo.tnttag.game;
 
 import me.vert3xo.tnttag.Main;
+import me.vert3xo.tnttag.configuration.ConfigurationManager;
 import me.vert3xo.tnttag.files.LocationHandler;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -14,7 +15,7 @@ public class GameManager implements Listener {
 
     private int lobbyCountdown = 10;
     private int explosionCountdown = 30;
-    private int playersNeeded = 1;
+    private int playersNeeded = ConfigurationManager.getConfig().getInt("needed-players");
     private boolean isStarted;
     private FileConfiguration locationConfig = LocationHandler.get();
 
@@ -46,8 +47,10 @@ public class GameManager implements Listener {
 
     public void lobbyWait(Player player) {
         int online = plugin.getServer().getOnlinePlayers().size();
-        plugin.getServer().broadcastMessage(ChatColor.GREEN + "We have enough players, the game is starting!");
-        playersCheck(online);
+        if (playersCheck(online)) {
+            plugin.getServer().broadcastMessage(ChatColor.GREEN + "We have enough players, the game is starting!");
+            lobbyCountdown();
+        }
     }
 
     public void gameStart() {
@@ -61,10 +64,11 @@ public class GameManager implements Listener {
         // TODO: Implement BungeeCord
     }
 
-    public void playersCheck(int online) {
+    public boolean playersCheck(int online) {
         if (online == playersNeeded) {
-            lobbyCountdown();
+            return true;
         }
+        return false;
     }
 
     public void explosionCountdown() {
@@ -88,7 +92,12 @@ public class GameManager implements Listener {
             @Override
             public void run() {
                 if (lobbyCountdown > 0) {
-                    plugin.getServer().broadcastMessage(ChatColor.GREEN + "The game is starting in " + lobbyCountdown-- + " seconds.");
+                    if (playersCheck(plugin.getServer().getOnlinePlayers().size())) {
+                        plugin.getServer().broadcastMessage(ChatColor.GREEN + "The game is starting in " + lobbyCountdown-- + " seconds.");
+                    } else {
+                        plugin.getServer().broadcastMessage(ChatColor.RED + "Someone disconnected! Waiting for additional players.");
+                        this.cancel();
+                    }
                 } else {
                     setStarted(true);
                     gameStart();
