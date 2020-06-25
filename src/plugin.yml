@@ -5,10 +5,14 @@ version: "0.1"
 
 main: "me.vert3xo.tnttag.Main"
 commands:
-  start:
-    usage: "Usage: /start"
+  forcestart:
+    usage: "Usage: /forcestart"
     permission: "tnttag.admin"
     description: "Force start the game."
+  forcestop:
+    usage: "Usage /forcestop"
+    permission: "tnttag.admin"
+    description: "Force stop the game."
   setlobby:
     usage: "Usage: /setlobby"
     permission: "tnttag.admin"

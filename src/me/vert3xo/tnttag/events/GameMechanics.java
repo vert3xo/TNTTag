@@ -6,18 +6,16 @@ import me.vert3xo.tnttag.files.LocationHandler;
 import me.vert3xo.tnttag.playerdata.PlayerManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
 import java.util.UUID;
 
@@ -37,6 +35,7 @@ public class GameMechanics implements Listener {
             }
             UUID uuid = p.getUniqueId();
             this.plugin.playerManager.put(uuid, new PlayerManager(uuid, false, 0, false, false));
+            this.plugin.playerManager.get(uuid).setHasTNT(false);
             this.plugin.playersInGame.add(p);
             this.plugin.gameManager.lobbyWait(p);
             if (!(p.hasPermission("tnttag.admin"))) {
@@ -76,27 +75,29 @@ public class GameMechanics implements Listener {
 
             if (taggerPlayerManager.isHasTNT() && !(taggedPlayerManager.isHasTNT())) {
                 taggerPlayerManager.setHasTNT(false);
-                PlayerInventory taggerInventory = tagger.getInventory();
-                taggerInventory.setHelmet(null);
-                taggerInventory.clear();
 
-                PlayerInventory taggedInventory = tagged.getInventory();
-                ItemStack tnt = new ItemStack(Material.TNT);
-                taggedInventory.setHelmet(tnt);
-                tagged.playSound(tagged.getLocation(), Sound.LEVEL_UP, 1, 1);
-                plugin.getServer().broadcastMessage(ChatColor.RED + tagged.getDisplayName() + " is IT!");
-                taggedInventory.addItem(tnt);
+                taggedPlayerManager.setHasTNT(true);
             }
         }
     }
 
     @EventHandler
-    public void HealFeedPlayer(FoodLevelChangeEvent e) {
-        if (e.getEntity() instanceof Player) {
-            Player p = (Player) e.getEntity();
-            p.setHealth(20);
-            p.setFoodLevel(20);
+    public void onBlockPlace(BlockPlaceEvent e) {
+        if (!(e.getPlayer().hasPermission("tnttag.admin"))) {
+            e.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent e) {
+        if (!(e.getPlayer().hasPermission("tnttag.admin"))) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void feedPlayers(FoodLevelChangeEvent e) {
+        e.setFoodLevel(20);
     }
 
     public void tntCheck(Player player) {

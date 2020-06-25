@@ -17,6 +17,7 @@ public class Main extends JavaPlugin {
     public HashMap<UUID, PlayerManager> playerManager = new HashMap<>();
     public ArrayList<Player> playersInGame = new ArrayList<>();
     public ArrayList<Player> playersLeftGame = new ArrayList<>();
+    public ArrayList<Player> deadPlayers = new ArrayList<>();
     public GameMechanics gameMechanics;
     public GameManager gameManager;
 
@@ -24,8 +25,8 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         this.loadConfigManager();
         this.registerEvents();
+        this.instantiateClasses();
         this.registerCommands();
-        instantiateClasses();
         this.getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "TNT Tag enabled.");
     }
 
@@ -41,7 +42,8 @@ public class Main extends JavaPlugin {
     }
 
     private void registerCommands() {
-        new StartGameCommand();
+        new ForceStartGameCommand();
+        new ForceStopGameCommand();
         new SetArenaLocation();
         new SetLobbyLocation();
         new ArenaTeleport();
