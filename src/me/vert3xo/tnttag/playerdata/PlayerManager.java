@@ -9,12 +9,14 @@ public class PlayerManager implements Listener {
     private boolean inGame;
     private int coinsEarned;
     private boolean isDead;
+    private boolean hasTNT;
 
-    public PlayerManager(UUID uuid, boolean inGame, int coinsEarned, boolean isDead) {
+    public PlayerManager(UUID uuid, boolean inGame, int coinsEarned, boolean isDead, boolean hasTNT) {
         this.uuid = uuid;
         this.inGame = inGame;
         this.coinsEarned = coinsEarned;
         this.isDead = isDead;
+        this.hasTNT = hasTNT;
     }
 
     public UUID getUuid() {
@@ -47,5 +49,13 @@ public class PlayerManager implements Listener {
 
     public void setDead(boolean dead) {
         isDead = dead;
+    }
+
+    public boolean isHasTNT() {
+        return hasTNT;
+    }
+
+    public void setHasTNT(boolean hasTNT) {
+        this.hasTNT = hasTNT;
     }
 }

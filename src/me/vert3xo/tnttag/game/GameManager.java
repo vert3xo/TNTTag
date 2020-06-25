@@ -5,10 +5,15 @@ import me.vert3xo.tnttag.configuration.ConfigurationManager;
 import me.vert3xo.tnttag.files.LocationHandler;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 public class GameManager implements Listener {
     private Main plugin = Main.getPlugin(Main.class);
@@ -18,6 +23,8 @@ public class GameManager implements Listener {
     private int playersNeeded = ConfigurationManager.getConfig().getInt("needed-players");
     private boolean isStarted;
     private FileConfiguration locationConfig = LocationHandler.get();
+    private int roundsPassed = 0;
+    private ArrayList<Player> tnts = new ArrayList<>();
 
     Location lobbySpawn;
     Location gameSpawn;
@@ -55,13 +62,25 @@ public class GameManager implements Listener {
 
     public void gameStart() {
         for (Player p : plugin.getServer().getOnlinePlayers()) {
+            p.getInventory().clear();
             p.teleport(gameSpawn);
+        }
+        tnts = chooseRandomTNTs(plugin.playersInGame);
+        for (Player p : tnts) {
+            p.getInventory().setHelmet(new ItemStack(Material.TNT));
+            plugin.playerManager.get(p.getUniqueId()).setHasTNT(true);
+            p.sendMessage(ChatColor.RED + "You are it!");
         }
         explosionCountdown();
     }
 
     public void gameStop() {
         // TODO: Implement BungeeCord
+        for (Player p : plugin.getServer().getOnlinePlayers()) {
+            if (!(p.hasPermission("tnttag.admin"))) {
+                p.kickPlayer(ChatColor.GREEN + "Game ended, thanks for playing.");
+            }
+        }
     }
 
     public boolean playersCheck(int online) {
@@ -105,5 +124,17 @@ public class GameManager implements Listener {
                 }
             }
         }.runTaskTimerAsynchronously(plugin, 0, 24);
+    }
+
+    private ArrayList<Player> chooseRandomTNTs(ArrayList<Player> players) {
+        ArrayList<Player> playersNotChosen = players;
+        ArrayList<Player> tnts = new ArrayList<>();
+        int numerOfTNTs = Math.round(30 / 100 * playersNotChosen.size());
+        for (int i = 0; i <= numerOfTNTs; i++) {
+            int randomNumber = new Random().nextInt(playersNotChosen.size());
+            tnts.add(playersNotChosen.get(randomNumber));
+            playersNotChosen.remove(randomNumber);
+        }
+        return tnts;
     }
 }
