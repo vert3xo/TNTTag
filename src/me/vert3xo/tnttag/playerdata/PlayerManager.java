@@ -1,5 +1,6 @@
 package me.vert3xo.tnttag.playerdata;
 
+import me.vert3xo.tnttag.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -12,6 +13,7 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.UUID;
 
 public class PlayerManager implements Listener {
+    private Main plugin = Main.getPlugin(Main.class);
     private UUID uuid;
     private boolean inGame;
     private int coinsEarned;
@@ -74,10 +76,11 @@ public class PlayerManager implements Listener {
     public void makePlayerTNT(Player player) {
         PlayerInventory pInv = player.getInventory();
         ItemStack tnt = new ItemStack(Material.TNT);
+        pInv.clear();
         pInv.setHelmet(tnt);
+        pInv.addItem(tnt);
         player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
         player.getServer().broadcastMessage(ChatColor.RED + player.getDisplayName() + " is IT!");
-        pInv.addItem(tnt);
     }
 
     public void removePlayerTNT(Player player) {

@@ -1,7 +1,7 @@
 package me.vert3xo.tnttag.commands;
 
 import me.vert3xo.tnttag.Main;
-import me.vert3xo.tnttag.files.LocationHandler;
+import me.vert3xo.tnttag.configuration.LocationHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

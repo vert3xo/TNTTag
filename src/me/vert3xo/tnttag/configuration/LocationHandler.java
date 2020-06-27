@@ -1,4 +1,4 @@
-package me.vert3xo.tnttag.files;
+package me.vert3xo.tnttag.configuration;
 
 import me.vert3xo.tnttag.Main;
 import org.bukkit.configuration.file.FileConfiguration;

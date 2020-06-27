@@ -1,7 +1,6 @@
 package me.vert3xo.tnttag.configuration;
 
 import me.vert3xo.tnttag.Main;
-import me.vert3xo.tnttag.files.LocationHandler;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -33,6 +32,9 @@ public class ConfigurationManager {
         config = YamlConfiguration.loadConfiguration(file);
         config.addDefault("max-players", 20);
         config.addDefault("needed-players", 2);
+        config.addDefault("lobby-wait-time", 10);
+        config.addDefault("explosion-timer", 30);
+        config.addDefault("game-end-wait-time", 20);
         config.options().copyDefaults(true);
         try {
             config.save(file);

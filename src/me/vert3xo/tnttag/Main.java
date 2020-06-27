@@ -24,8 +24,8 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         this.loadConfigManager();
-        this.registerEvents();
         this.instantiateClasses();
+        this.registerEvents();
         this.registerCommands();
         this.getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "TNT Tag enabled.");
     }

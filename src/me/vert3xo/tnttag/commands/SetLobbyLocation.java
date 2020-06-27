@@ -1,6 +1,6 @@
 package me.vert3xo.tnttag.commands;
 
-import me.vert3xo.tnttag.files.LocationHandler;
+import me.vert3xo.tnttag.configuration.LocationHandler;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;

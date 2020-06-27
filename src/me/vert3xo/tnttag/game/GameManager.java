@@ -2,14 +2,12 @@ package me.vert3xo.tnttag.game;
 
 import me.vert3xo.tnttag.Main;
 import me.vert3xo.tnttag.configuration.ConfigurationManager;
-import me.vert3xo.tnttag.files.LocationHandler;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import me.vert3xo.tnttag.configuration.LocationHandler;
+import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
@@ -17,14 +15,17 @@ import java.util.Random;
 
 public class GameManager implements Listener {
     private Main plugin = Main.getPlugin(Main.class);
+    private FileConfiguration config = ConfigurationManager.getConfig();
 
-    private int lobbyCountdown = 10;
-    private int explosionCountdown = 30;
-    private int playersNeeded = ConfigurationManager.getConfig().getInt("needed-players");
+    private int lobbyCountdown = config.getInt("lobby-wait-time");
+    private int explosionCountdown = config.getInt("explosion-timer");
+    private int gameEndTimer = config.getInt("game-end-wait-time");
+    private int playersNeeded = config.getInt("needed-players");
+    public Player winner = null;
     private boolean isStarted;
     private FileConfiguration locationConfig = LocationHandler.get();
     private int roundsPassed = 0;
-    private ArrayList<Player> tnts = new ArrayList<>();
+    public ArrayList<Player> tnts = new ArrayList<>();
 
     Location lobbySpawn;
     Location gameSpawn;
@@ -52,58 +53,10 @@ public class GameManager implements Listener {
         );
     }
 
-    public void lobbyWait(Player player) {
-        int online = plugin.getServer().getOnlinePlayers().size();
-        if (playersCheck(online)) {
-            plugin.getServer().broadcastMessage(ChatColor.GREEN + "We have enough players, the game is starting!");
-            lobbyCountdown();
+    public void lobbyWait() {
+        if (plugin.playersInGame.size() == playersNeeded) {
+            this.lobbyCountdown();
         }
-    }
-
-    public void gameStart() {
-        for (Player p : plugin.getServer().getOnlinePlayers()) {
-            p.getInventory().clear();
-            p.teleport(gameSpawn);
-        }
-        tnts = chooseRandomTNTs(plugin.playersInGame);
-        for (Player p : tnts) {
-            p.getInventory().setHelmet(new ItemStack(Material.TNT));
-            plugin.playerManager.get(p.getUniqueId()).setHasTNT(true);
-            p.sendMessage(ChatColor.RED + "You are it!");
-        }
-        explosionCountdown();
-    }
-
-    public void gameStop() {
-        // TODO: Implement BungeeCord
-        for (Player p : plugin.getServer().getOnlinePlayers()) {
-            if (!(p.hasPermission("tnttag.admin"))) {
-                p.kickPlayer(ChatColor.GREEN + "Game ended, thanks for playing.");
-            }
-        }
-    }
-
-    public boolean playersCheck(int online) {
-        if (online == playersNeeded) {
-            return true;
-        }
-        return false;
-    }
-
-    public void explosionCountdown() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Player p : plugin.getServer().getOnlinePlayers()) {
-                    if (explosionCountdown > 0) {
-                        --explosionCountdown;
-                    } else {
-                        plugin.gameMechanics.tntCheck(p);
-                        explosionCountdown = 30;
-                    }
-                }
-            }
-        }.runTaskTimerAsynchronously(plugin, 0, 24);
     }
 
     public void lobbyCountdown() {
@@ -111,30 +64,129 @@ public class GameManager implements Listener {
             @Override
             public void run() {
                 if (lobbyCountdown > 0) {
-                    if (playersCheck(plugin.getServer().getOnlinePlayers().size())) {
-                        plugin.getServer().broadcastMessage(ChatColor.GREEN + "The game is starting in " + lobbyCountdown-- + " seconds.");
-                    } else {
-                        plugin.getServer().broadcastMessage(ChatColor.RED + "Someone disconnected! Waiting for additional players.");
+                    lobbyCountdown--;
+                    plugin.getServer().broadcastMessage(ChatColor.GREEN + "Game starting in " + lobbyCountdown);
+                    if (!(plugin.playersInGame.size() >= playersNeeded)) {
                         this.cancel();
                     }
                 } else {
-                    setStarted(true);
                     gameStart();
+                    lobbyCountdown = config.getInt("lobby-wait-time");
                     this.cancel();
                 }
             }
-        }.runTaskTimerAsynchronously(plugin, 0, 24);
+        }.runTaskTimer(plugin, 0, 24);
     }
 
-    private ArrayList<Player> chooseRandomTNTs(ArrayList<Player> players) {
-        ArrayList<Player> playersNotChosen = players;
+    public void explosionCountdown() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (explosionCountdown > 0) {
+                    explosionCountdown--;
+//                    plugin.getServer().broadcastMessage(String.valueOf(explosionCountdown));
+                } else {
+                    for (Player p : tnts) {
+                        plugin.deadPlayers.add(p);
+                    }
+                    plugin.gameMechanics.tntCheck();
+                    tnts.clear();
+                    makeDeadSpectators();
+                    if (plugin.playersInGame.size() + tnts.size() == 1) {
+                        winner = plugin.playersInGame.get(0);
+                        gameEndCountdown();
+                        this.cancel();
+                    }
+                    tnts = chooseRandomTNTs();
+                    explosionCountdown = config.getInt("explosion-timer");
+                }
+            }
+        }.runTaskTimer(plugin, 0, 24);
+    }
+
+    public void gameEndCountdown() {
+        if (winner != null) {
+            plugin.getServer().broadcastMessage(ChatColor.GREEN.toString() + ChatColor.BOLD + "Game ended, the winner is " + winner.getDisplayName() + "!");
+        } else {
+            plugin.getServer().broadcastMessage(ChatColor.GREEN.toString() + ChatColor.BOLD + "Game ended, congratulations to the winner!");
+        }
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (gameEndTimer > 0) {
+                    gameEndTimer--;
+//                    plugin.getServer().broadcastMessage(String.valueOf(gameEndTimer));
+                } else {
+                    gameStop();
+                    this.cancel();
+                }
+            }
+        }.runTaskTimer(plugin, 0, 24);
+    }
+
+    public void gameStart() {
+        this.setStarted(true);
+        if (plugin.playersInGame.size() == 1) {
+            winner = plugin.playersInGame.get(0);
+            winner.teleport(this.gameSpawn);
+            this.gameEndCountdown();
+            return;
+        } else if (plugin.playersInGame.size() == 0) {
+            this.gameEndCountdown();
+            return;
+        }
+        this.setStarted(true);
+        for (Player p : plugin.playersInGame) {
+            p.teleport(this.gameSpawn);
+        }
+        tnts = chooseRandomTNTs();
+        for (Player p : tnts) {
+            plugin.playerManager.get(p.getUniqueId()).setHasTNT(true);
+            p.sendMessage(ChatColor.RED.toString() + ChatColor.BOLD.toString() + ChatColor.UNDERLINE + "You are IT!");
+        }
+        this.explosionCountdown();
+    }
+
+    public void gameStop() {
+        // TODO: Implement BungeeCord
+        for(Player p : plugin.getServer().getOnlinePlayers()) {
+            if (!(p.hasPermission("tnttag.admin"))) {
+                p.kickPlayer(ChatColor.GREEN + "Game ended, thanks for playing!");
+            }
+        }
+        this.setStarted(false);
+    }
+
+    private ArrayList<Player> chooseRandomTNTs() {
         ArrayList<Player> tnts = new ArrayList<>();
-        int numerOfTNTs = Math.round(30 / 100 * playersNotChosen.size());
-        for (int i = 0; i <= numerOfTNTs; i++) {
+        ArrayList<Player> playersNotChosen = plugin.playersInGame;
+        int numberOfTNTs = (int) (Math.ceil(30f / 100f * (float) playersNotChosen.size()));
+        for(int i = 0; i < numberOfTNTs; i++) {
             int randomNumber = new Random().nextInt(playersNotChosen.size());
             tnts.add(playersNotChosen.get(randomNumber));
             playersNotChosen.remove(randomNumber);
         }
         return tnts;
+    }
+
+    private void makeDeadSpectators() {
+        for (Player p : plugin.deadPlayers) {
+            PlayerInventory pInv = p.getInventory();
+            pInv.clear();
+            pInv.setHelmet(null);
+            p.setGameMode(GameMode.SPECTATOR);
+        }
+    }
+
+    public Player checkForWinner() {
+        if (plugin.playersInGame.size() + tnts.size() == 1) {
+            if (plugin.playersInGame.size() == 1) {
+                return plugin.playersInGame.get(0);
+            } else {
+                plugin.playerManager.get(tnts.get(0).getUniqueId()).setHasTNT(false);
+                return tnts.get(0);
+            }
+        }
+        return null;
     }
 }
