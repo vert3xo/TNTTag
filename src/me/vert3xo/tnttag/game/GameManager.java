@@ -84,7 +84,6 @@ public class GameManager implements Listener {
             public void run() {
                 if (explosionCountdown > 0) {
                     explosionCountdown--;
-//                    plugin.getServer().broadcastMessage(String.valueOf(explosionCountdown));
                 } else {
                     for (Player p : tnts) {
                         plugin.deadPlayers.add(p);
@@ -96,6 +95,12 @@ public class GameManager implements Listener {
                         winner = plugin.playersInGame.get(0);
                         gameEndCountdown();
                         this.cancel();
+                    }
+                    roundsPassed++;
+                    if (roundsPassed > 7) {
+                        for (Player p : plugin.getServer().getOnlinePlayers()) {
+                            p.teleport(gameSpawn);
+                        }
                     }
                     tnts = chooseRandomTNTs();
                     explosionCountdown = config.getInt("explosion-timer");
